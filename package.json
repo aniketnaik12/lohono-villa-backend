@@ -1,0 +1,32 @@
+{
+  "name": "lohono-backend",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+  "dev": "nodemon --exec ts-node src/server.ts",
+  "seed": "ts-node src/seed/seed.ts",
+  "build": "tsc",
+  "start": "node dist/server.js"
+},
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dayjs": "^1.11.19",
+    "dotenv": "^17.2.3",
+    "express": "^5.2.1",
+    "pg": "^8.17.2",
+    "reflect-metadata": "^0.2.2",
+    "typeorm": "^0.3.28"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/node": "^25.0.10",
+    "nodemon": "^3.1.11",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
+  }
+}
