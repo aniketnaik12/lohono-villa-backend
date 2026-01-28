@@ -16,6 +16,8 @@ export async function listAvailableVillas(req: Request, res: Response) {
         limit = '10',
         sort = 'avg_price_per_night',
         order = 'ASC',
+        search,
+        tags,
     } = req.query;
 
     if (!check_in || !check_out) {
@@ -26,12 +28,12 @@ export async function listAvailableVillas(req: Request, res: Response) {
     }
 
     if (
-        !dayjs(check_in as string).isValid() ||
-        !dayjs(check_out as string).isValid()
+        !dayjs(check_in as string, 'YYYY-MM-DD', true).isValid() ||
+        !dayjs(check_out as string, 'YYYY-MM-DD', true).isValid()
     ) {
         return res.status(400).json({
             error: 'invalid_request',
-            message: 'Invalid date format',
+            message: 'Dates must be in YYYY-MM-DD format',
         });
     }
 
@@ -50,6 +52,8 @@ export async function listAvailableVillas(req: Request, res: Response) {
             limit: Number(limit),
             sort: sort as string,
             order: order as 'ASC' | 'DESC',
+            search: search ? String(search) : undefined,
+            tags: tags ? String(tags).split(',') : undefined,
         });
 
         return res.json(result);
@@ -77,12 +81,12 @@ export async function getVillaQuote(req: Request, res: Response) {
     }
 
     if (
-        !dayjs(check_in as string).isValid() ||
-        !dayjs(check_out as string).isValid()
+        !dayjs(check_in as string, 'YYYY-MM-DD', true).isValid() ||
+        !dayjs(check_out as string, 'YYYY-MM-DD', true).isValid()
     ) {
         return res.status(400).json({
             error: 'invalid_request',
-            message: 'Invalid date format',
+            message: 'Dates must be in YYYY-MM-DD format',
         });
     }
 
