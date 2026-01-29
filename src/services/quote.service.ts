@@ -15,7 +15,7 @@ export async function getQuoteForVilla({
     const rows = await AppDataSource.query(
         `
     SELECT
-      vc.date,
+      to_char(vc.date, 'YYYY-MM-DD') AS date,
       vc.rate,
       vc.is_available
     FROM villa_calendar vc
