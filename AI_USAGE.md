@@ -119,18 +119,17 @@ Implement filters and sorting for a villa listing screen.
 
 
 ### Accepted
-- UI entry points for filters and sorting
-- Bottom sheet interaction pattern
+- Bottom sheet interaction patterns for filters and sorting
+- Query-driven filtering and sorting via backend APIs
 
 ### Rejected
-- Full backend filter implementation
-- Complex query parameter handling
+- Client-side-only filtering
+- Hardcoded or mock filter behavior
 
 ### Modified
-- Documented filters as UI-driven to align with assignment scope
-- Kept backend APIs simple and focused on availability and pricing
-
-
-
-
-
+- Implemented functional filtering for:
+   - Location (via search query)
+   - Tags (via PostgreSQL array overlap)
+   - Price range (per-night filtering)
+- Sorting handled via backend-safe SQL columns
+- Ensured frontend and backend remain fully synchronized

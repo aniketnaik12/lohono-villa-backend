@@ -9,106 +9,109 @@ import { getQuoteForVilla } from '../services/quote.service';
  * GET /v1/villas/availability
  */
 export async function listAvailableVillas(req: Request, res: Response) {
-    const {
-        check_in,
-        check_out,
-        page = '1',
-        limit = '10',
-        sort = 'avg_price_per_night',
-        order = 'ASC',
-        search,
-        tags,
-    } = req.query;
+  const {
+    check_in,
+    check_out,
+    page = '1',
+    limit = '10',
+    sort = 'avg_price_per_night',
+    order = 'ASC',
+    search,
+    tags,
+    min_price,
+    max_price,
+  } = req.query;
 
-    if (!check_in || !check_out) {
-        return res.status(400).json({
-            error: 'invalid_request',
-            message: 'check_in and check_out are required',
-        });
-    }
+  if (!check_in || !check_out) {
+    return res.status(400).json({
+      error: 'invalid_request',
+      message: 'check_in and check_out are required',
+    });
+  }
 
-    if (
-        !dayjs(check_in as string, 'YYYY-MM-DD', true).isValid() ||
-        !dayjs(check_out as string, 'YYYY-MM-DD', true).isValid()
-    ) {
-        return res.status(400).json({
-            error: 'invalid_request',
-            message: 'Dates must be in YYYY-MM-DD format',
-        });
-    }
+  if (
+    !dayjs(check_in as string, 'YYYY-MM-DD', true).isValid() ||
+    !dayjs(check_out as string, 'YYYY-MM-DD', true).isValid()
+  ) {
+    return res.status(400).json({
+      error: 'invalid_request',
+      message: 'Dates must be in YYYY-MM-DD format',
+    });
+  }
 
-    if (!dayjs(check_in as string).isBefore(dayjs(check_out as string))) {
-        return res.status(400).json({
-            error: 'invalid_request',
-            message: 'check_in must be before check_out',
-        });
-    }
+  if (!dayjs(check_in as string).isBefore(dayjs(check_out as string))) {
+    return res.status(400).json({
+      error: 'invalid_request',
+      message: 'check_in must be before check_out',
+    });
+  }
 
-    try {
-        const result = await getAvailableVillas({
-            checkIn: check_in as string,
-            checkOut: check_out as string,
-            page: Number(page),
-            limit: Number(limit),
-            sort: sort as string,
-            order: order as 'ASC' | 'DESC',
-            search: search ? String(search) : undefined,
-            tags: tags ? String(tags).split(',') : undefined,
-        });
+  try {
+    const result = await getAvailableVillas({
+      checkIn: check_in as string,
+      checkOut: check_out as string,
+      page: Number(page),
+      limit: Number(limit),
+      sort: sort as string,
+      order: order as 'ASC' | 'DESC',
+      search: search ? String(search) : undefined,
+      tags: tags ? String(tags).split(',') : undefined,
+      minPrice: min_price ? Number(min_price) : undefined,
+      maxPrice: max_price ? Number(max_price) : undefined,
+    });
 
-        return res.json(result);
-    } catch (error) {
-        console.error('Availability API error:', error);
-        return res.status(500).json({
-            error: 'internal_error',
-            message: 'Failed to fetch availability',
-        });
-    }
+    return res.json(result);
+  } catch (error) {
+    console.error('Availability API error:', error);
+    return res.status(500).json({
+      error: 'internal_error',
+      message: 'Failed to fetch availability',
+    });
+  }
 }
 
 /**
  * GET /v1/villas/:villa_id/quote
  */
 export async function getVillaQuote(req: Request, res: Response) {
-    const { villa_id } = req.params;
-    const { check_in, check_out } = req.query;
+  const { villa_id } = req.params;
+  const { check_in, check_out } = req.query;
 
-    if (!check_in || !check_out) {
-        return res.status(400).json({
-            error: 'invalid_request',
-            message: 'check_in and check_out are required',
-        });
-    }
-
-    if (
-        !dayjs(check_in as string, 'YYYY-MM-DD', true).isValid() ||
-        !dayjs(check_out as string, 'YYYY-MM-DD', true).isValid()
-    ) {
-        return res.status(400).json({
-            error: 'invalid_request',
-            message: 'Dates must be in YYYY-MM-DD format',
-        });
-    }
-
-    if (!dayjs(check_in as string).isBefore(dayjs(check_out as string))) {
-        return res.status(400).json({
-            error: 'invalid_request',
-            message: 'check_in must be before check_out',
-        });
-    }
-
-    const villaRepo = AppDataSource.getRepository(Villa);
-    const villa = await villaRepo.findOne({
-        where: { id: Number(villa_id) },
+  if (!check_in || !check_out) {
+    return res.status(400).json({
+      error: 'invalid_request',
+      message: 'check_in and check_out are required',
     });
+  }
 
-    if (!villa) {
-        return res.status(404).json({
-            error: 'not_found',
-            message: 'villa_id not found',
-        });
-    }
+  if (
+    !dayjs(check_in as string, 'YYYY-MM-DD', true).isValid() ||
+    !dayjs(check_out as string, 'YYYY-MM-DD', true).isValid()
+  ) {
+    return res.status(400).json({
+      error: 'invalid_request',
+      message: 'Dates must be in YYYY-MM-DD format',
+    });
+  }
 
+  if (!dayjs(check_in as string).isBefore(dayjs(check_out as string))) {
+    return res.status(400).json({
+      error: 'invalid_request',
+      message: 'check_in must be before check_out',
+    });
+  }
+
+  const villaRepo = AppDataSource.getRepository(Villa);
+  const villa = await villaRepo.findOne({
+    where: { id: Number(villa_id) },
+  });
+
+  if (!villa) {
+    return res.status(404).json({
+      error: 'not_found',
+      message: 'villa_id not found',
+    });
+  }
     try {
         const quote = await getQuoteForVilla({
             villaId: Number(villa_id),

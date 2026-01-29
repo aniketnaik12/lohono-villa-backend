@@ -9,6 +9,8 @@ interface Params {
   order: 'ASC' | 'DESC';
   search?: string;
   tags?: string[];
+  minPrice?: number;
+  maxPrice?: number;
 }
 
 export async function getAvailableVillas({
@@ -20,10 +22,12 @@ export async function getAvailableVillas({
   order,
   search,
   tags,
+  minPrice,
+  maxPrice,
 }: Params) {
   const offset = (page - 1) * limit;
 
-  /* 🔃 Allowed sort columns (prevent SQL injection) */
+  /* Allowed sort columns (SQL injection safe) */
   let sortColumn = 'avg_price_per_night';
   if (sort === 'subtotal') sortColumn = 'subtotal';
   if (sort === 'rating') sortColumn = 'v.rating';
@@ -31,13 +35,14 @@ export async function getAvailableVillas({
   const params: any[] = [checkIn, checkOut];
   let paramIndex = params.length;
 
+  /* Base availability conditions */
   let whereClause = `
     vc.date >= $1
     AND vc.date < $2
     AND vc.is_available = true
   `;
 
-  /* 🔍 SEARCH (name or location) */
+  /* Search (villa name or location) */
   if (search) {
     paramIndex++;
     whereClause += `
@@ -49,13 +54,27 @@ export async function getAvailableVillas({
     params.push(`%${search.toLowerCase()}%`);
   }
 
-  /* 🏷 TAG FILTER */
+  /* Tags (ANY match) */
   if (tags && tags.length > 0) {
     paramIndex++;
     whereClause += ` AND v.tags && $${paramIndex} `;
     params.push(tags);
   }
 
+  /* Price range (per-night) */
+  if (minPrice !== undefined) {
+    paramIndex++;
+    whereClause += ` AND vc.rate >= $${paramIndex} `;
+    params.push(minPrice);
+  }
+
+  if (maxPrice !== undefined) {
+    paramIndex++;
+    whereClause += ` AND vc.rate <= $${paramIndex} `;
+    params.push(maxPrice);
+  }
+
+  /* Main data query */
   const dataQuery = `
     WITH stay_days AS (
       SELECT COUNT(*) AS nights
